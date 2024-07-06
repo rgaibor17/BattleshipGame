@@ -6,7 +6,7 @@
 .data
     ; Game board and ship location
     board_size equ 5
-    board db board_size*board_size dup(' ')  ; Game board (5x5)
+    board dw board_size*board_size dup('_\n')  ; Game board (5x5)
     ship_x db ?     ; Ship X coordinate (0-4)
     ship_y db ?     ; Ship Y coordinate (0-4)
     ship_sunk db 0  ; Flag to track if ship is sunk (0 = not sunk, 1 = sunk)
@@ -53,7 +53,7 @@ game_loop:
     mov cl, board_size  ; CL = board_size (5)
     mul cl              ; AX = AL * CL (AL = row index, CL = board_size)
     add al, bh          ; AL = AL + BH (BH = column index)
-    mov dl, board[ax]   ; DL = board[AL] (board[row_index * board_size + column_index])
+    mov dl, OFFSET board[ax]   ; DL = board[AL] (board[row_index * board_size + column_index])
     cmp dl, 'X'         ; Compare with 'X' (already guessed)
     je already_guessed ; Jump if already guessed
     
@@ -84,12 +84,12 @@ display_result:
     
     cmp ah, 1            ; Compare AH (result flag)
     je hit               ; Jump if hit
-    mov byte ptr board[ax], 'O'  ; Set board[AL] = 'O' (miss)
+    mov OFFSET byte ptr board[ax], 'O'  ; Set board[AL] = 'O' (miss)
     jmp game_loop        ; Jump back to game loop
     
 hit:
     ; If reaches here, it's a hit
-    mov byte ptr board[ax], 'X'  ; Set board[AL] = 'X' (hit)
+    mov OFFSET byte ptr board[ax], 'X'  ; Set board[AL] = 'X' (hit)
     
     ; Check if all ships are sunk
     cmp ship_sunk, 1
@@ -139,7 +139,7 @@ display_board:
     lea di, board        ; Load offset of board into DI
     
 print_board_loop:
-    mov cl, cx           ; CL = CX (board_size)
+    mov cl, cl           ; CL = CX (board_size)
     
 print_row_loop:
     mov al, [di]         ; AL = value at DI (board[row * board_size + column])
